@@ -11,8 +11,10 @@
     <script src="./js/vue.js"></script>
     <script src="./js/jquery-3.6.3.min.js"></script>
     <script src="./js/clipboard.min.js"></script>
+    <script src="./js/echarts.min.js"></script>
     <link rel="stylesheet" href="./ace/ace-tm.css" />
     <script src="./ElementUi/index.js"></script>
+    <script src="./js/html2canvas.js"></script>
     <link rel="stylesheet" href="./ElementUi/index.css" />
     <style type="text/css">
       body {
@@ -70,7 +72,7 @@
         background-color: transparent;
       }
     </style>
-    <title>在线编辑器</title>
+    <title>Echarts在线编辑器</title>
   </head>
   <body>
     <div id="app" style="height: 100%; position: relative; width: 100%">
@@ -122,6 +124,7 @@
             :icon="elico"
             style="float: right"
             @click="Switching"
+            title="代码高亮主题切换"
             >高亮</el-button
           >
           <el-button
@@ -133,6 +136,16 @@
             @click="copy"
             >复制</el-button
           >
+          <el-switch
+           :disabled="value"
+            v-model="value"  
+            active-text="开启自动运行"
+            @change="change"
+            style="float: right; height: 32px"
+            title="开启后更改代码将自动生成表单"
+          >
+            >
+          </el-switch>
           <div style="clear: both"></div>
         </div>
         <div
@@ -162,6 +175,13 @@
         >
           <p><i class="el-icon-document-checked"></i> 运行结果</p>
           <p :class="aclss">{{debText}}</p>
+          <el-button
+            size="mini"
+            icon="el-icon-camera"
+            style="float: right; margin-top: 2px; margin-right: 10px"
+            @click="Jietu"
+            >截图</el-button
+          >
           <div style="clear: both"></div>
         </div>
         <div id="codeShow"></div>
@@ -179,6 +199,7 @@
           acetm: false,
           aclss: "",
           elico: "el-icon-bottom",
+          value: false,
         },
         mounted() {
           this.editor = ace.edit(codeEditor, {
@@ -189,6 +210,7 @@
             wrap: true,
           });
           this.editor.getSession().setUseWrapMode(false); //自动换行
+          this.Switching();
           this.csDy(); //初始加载代码并运行，使用async/await控制异步顺序（由于mounted异步调用方法，需先获取代码再运行）
           //$("#codeEditor").addClass("ace-tm");//编辑代码中含有属性对象的可设置添加该css，优化高亮效果，参考Echarts
           //this.editor.getSession().on("change", this.change);//编辑器变化监听
@@ -197,15 +219,22 @@
           async csDy() {
             //async函数前的修饰符，被async定义的函数会默认返回一个Promise对象resolve的值，配合await使用
             let s = await this.refresh(); //await关键字 会获取到refresh返回值后再执行
-            this.editor.setValue(s, -1);
+            this.editor.setValue(s);
             if (this.editor.session.getLength()) {
               //获取编辑器行数
               this.editor.moveCursorTo(1); //移动光标至第二行，第1列
             }
             this.debEvel();
           },
-          change() {
-            this.codes = this.editor.getValue();
+          change(value) {
+            if (value) {
+              console.log(value);
+              this.editor.getSession().on("change", this.debEvel);
+            } else {
+              this.editor.getSession().on("change", function () {
+                return false;
+              });
+            }
           },
           debEvel() {
             try {
@@ -218,6 +247,9 @@
               eval(func);
               this.debText = "运行成功！";
               this.aclss = "success";
+              $("#codeShow").removeAttr("_echarts_instance_").empty();
+              var myChart = echarts.init(document.getElementById("codeShow"));
+              myChart.setOption(option, true);
               return true;
             } catch {
               this.debText = "代码有误，请检查！";
@@ -287,9 +319,22 @@
               });
             });
           },
+          Jietu() {
+            html2canvas($("#codeShow"), {
+              useCORS: true, //允许跨域
+              onrendered: function (canvas) {
+                //var url = canvas.toDataURL("image/png");
+                const link = document.createElement("a"); // 创建一个超链接对象实例
+                const event = new MouseEvent("click"); // 创建一个鼠标事件的实例
+                link.download = "图表截图.png"; // 设置要下载的图片的名称
+                link.href = canvas.toDataURL(); // 将图片的URL设置到超链接的href中
+                link.dispatchEvent(event); // 触发超链接的点击事件
+              },
+              background:"#FFFFFF"//设置图片背景颜色
+            });
+          },
         },
       });
     </script>
-    <script></script>
   </body>
 </html>
