@@ -38,6 +38,9 @@ option = {
       name: "Two",
       data: [142, 200, 204, 189, 110, 127, 247],
       type: "line",
+      label: {
+        show: true,
+      },
     },
   ],
 };
