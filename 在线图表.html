@@ -179,9 +179,18 @@
             size="mini"
             icon="el-icon-camera"
             style="float: right; margin-top: 2px; margin-right: 10px"
-            @click="Jietu"
+            @click="Jietu(false)"
+            title="下载的图片无背景颜色"
             >截图</el-button
           >
+          <el-button
+          size="mini"
+          icon="el-icon-download"
+          style="float: right; margin-top: 2px; margin-right: 10px"
+          @click="Jietu(true)"
+          title="下载的图片含背景颜色"
+          >下载</el-button
+        >
           <div style="clear: both"></div>
         </div>
         <div id="codeShow"></div>
@@ -228,7 +237,6 @@
           },
           change(value) {
             if (value) {
-              console.log(value);
               this.editor.getSession().on("change", this.debEvel);
             } else {
               this.editor.getSession().on("change", function () {
@@ -319,7 +327,7 @@
               });
             });
           },
-          Jietu() {
+          Jietu(s) {
             html2canvas($("#codeShow"), {
               useCORS: true, //允许跨域
               onrendered: function (canvas) {
@@ -330,7 +338,7 @@
                 link.href = canvas.toDataURL(); // 将图片的URL设置到超链接的href中
                 link.dispatchEvent(event); // 触发超链接的点击事件
               },
-              background:"#FFFFFF"//设置图片背景颜色
+              background:s==true?"#FFFFFF":null//设置图片背景颜色
             });
           },
         },
